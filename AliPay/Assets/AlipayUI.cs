@@ -41,7 +41,6 @@ public class AlipayUI : MonoBehaviour
         AndroidJavaClass jc = new AndroidJavaClass(className);
         jo = jc.CallStatic<AndroidJavaObject>("GetInstance", gameObject.name); //Main Camera
         jo.Call("SayHello"); //void SayHello()，没有返回类型
-
         resultText.text = jo.Call<int>("CalculateAdd", 12, 34).ToString(); //int CalculateAdd()，有返回类型
     }
 
@@ -59,5 +58,20 @@ public class AlipayUI : MonoBehaviour
     public void PluginCallBack(string text)
     {
         logText.text = text;
+    }
+
+    //检查GPS是否打开
+    public void OnCheckGPS()
+    {
+        logText.text = "";
+
+        bool res = jo.Call<bool>("checkGPSIsOpen");
+        logText.text = "[GPS是否开启]" + res;
+    }
+
+    //跳转GPS系统设置页
+    public void OnOpenGPSSettings()
+    {
+        jo.Call("openGPSSetting"); //void openGPSSetting()没有返回类型
     }
 }
