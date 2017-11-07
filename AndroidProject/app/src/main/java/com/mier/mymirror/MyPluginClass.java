@@ -8,6 +8,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Build;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.widget.Toast;
@@ -19,6 +20,8 @@ import com.unity3d.player.UnityPlayerActivity;
 import java.util.Map;
 
 import demo.PayResult;
+import demo.BadgeUtil;
+import demo.samsungbadger.*;
 
 public class MyPluginClass extends Fragment
 {
@@ -43,6 +46,7 @@ public class MyPluginClass extends Fragment
         super.onCreate(savedInstanceState);
         setRetainInstance(true);  // 这一句很重要，保存对该Fragment的引用，防止在旋转屏幕等操作时时丢失引用（Fragment隶属于Activity）
     }
+
     //示例方法一：简单的向Unity回调
     public void SayHello()
     {
@@ -146,5 +150,49 @@ public class MyPluginClass extends Fragment
         Intent i = new Intent();
         i.setAction(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
         startActivity(i);
+    }
+
+    //Badge
+    public String ShortCut()
+    {
+        if (Build.MANUFACTURER.equalsIgnoreCase("xiaomi")){
+            //小米
+            //xiaoMiShortCut(context, clazz, num);
+            return "小米";
+        }else if(Build.MANUFACTURER.equalsIgnoreCase("samsung")){
+            //三星
+            //samsungShortCut(context, num);
+            return "三星";
+        }else {//其他原生系统手机
+            //installRawShortCut(context, MainActivity.class, isShowNum, num, isStroke);
+            return "其他原生系统手机";
+        }
+    }
+
+    public void SendBadge(){
+        //BadgeUtil.setBadgeCount(getActivity().getApplicationContext(), 1);
+        Context context = getActivity().getApplicationContext();
+        if (Badge.isBadgingSupported(context)) {
+            Badge badge = new Badge();
+            badge.mPackage = context.getPackageName();
+            badge.mClass = getClass().getName(); // This should point to Activity declared as android.intent.action.MAIN
+            badge.mBadgeCount = 1;
+            badge.save(context);
+        }
+    }
+
+    public void CleanBadge(){
+        //BadgeUtil.resetBadgeCount(getActivity().getApplicationContext());
+        Context context = getActivity().getApplicationContext();
+        if (Badge.isBadgingSupported(context)) {
+            Badge badge = Badge.getBadge(context);
+            if (badge != null) {
+                badge.mBadgeCount = 0;
+                badge.update(context);
+            } else {
+                // Nothing to do as this means you don't have a badge record with the BadgeProvider
+                // Thus you shouldn't even have a badge count on your icon
+            }
+        }
     }
 }

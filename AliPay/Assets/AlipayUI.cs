@@ -74,4 +74,30 @@ public class AlipayUI : MonoBehaviour
     {
         jo.Call("openGPSSetting"); //void openGPSSetting()没有返回类型
     }
+
+
+    //角标
+    public void OnCheckOEM()
+    {
+        string res = jo.Call<string>("OnCheckOEM"); //void OnCheckOEM()没有返回类型
+        Debug.Log(res);
+    }
+
+    public void OnSetBadge()
+    {
+        jo.Call("SetBadge", 3); //3作为object对象，要与java函数中类型对应
+    }
+
+    public void OnResetBadge()
+    {
+        jo.Call("ResetBadge"); //void OnResetBadge()没有返回类型
+    }
+
+    string url = "https://item.taobao.com/item.htm?id=560384010422&ali_refid=a3_430406_1007:1150235186:N:7597500987074971615_0_100:ce6b98fb592c27b3a4befb5a73e7d620&ali_trackid=1_ce6b98fb592c27b3a4befb5a73e7d620&spm=a21bo.2017.201874-sales.15";
+    public void OnTaobao()
+    {
+        jo.Call("taobao", url); //void taobao()没有返回类型
+    }
+
+
 }
