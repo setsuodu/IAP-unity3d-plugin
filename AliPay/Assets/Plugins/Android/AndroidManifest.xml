@@ -22,11 +22,13 @@
         <activity android:name="com.mier.mymirror.MainActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-          
-            <!--提供unity打包时合并manifest-->
-            <meta-data android:name="unityplayer.UnityActivity" android:value="true" />
+
+            <meta-data
+                android:name="unityplayer.UnityActivity"
+                android:value="true" />
         </activity>
     </application>
 

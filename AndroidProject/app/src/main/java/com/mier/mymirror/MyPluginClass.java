@@ -2,9 +2,13 @@ package com.mier.mymirror;
 
 import android.annotation.SuppressLint;
 import android.app.Fragment;
+import android.content.Context;
+import android.content.Intent;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.widget.Toast;
 
@@ -125,5 +129,22 @@ public class MyPluginClass extends Fragment
         Thread payThread = new Thread(payRunnable);
         payThread.start();
         return orderInfo;
+    }
+
+    //GPS
+    LocationManager locationManager;
+    public boolean checkGPSIsOpen() {
+        boolean isOpen;
+        LocationManager locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+        isOpen = locationManager.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER);
+        return isOpen;
+    }
+
+    public void openGPSSetting() {
+        //1、提示用户打开定位服务；2、跳转到设置界面
+        Toast.makeText(getActivity(), "无法定位，请打开定位服务", Toast.LENGTH_SHORT).show();
+        Intent i = new Intent();
+        i.setAction(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+        startActivity(i);
     }
 }
