@@ -28,7 +28,6 @@ public class MyPluginClass extends Fragment
     private static final String TAG = "MyPlugin";
     private static MyPluginClass Instance = null;
     private String gameObjectName;
-
     public static MyPluginClass GetInstance(String gameObject)
     {
         if(Instance == null)
@@ -48,8 +47,7 @@ public class MyPluginClass extends Fragment
     }
 
     //示例方法一：简单的向Unity回调
-    public void SayHello()
-    {
+    public void SayHello() {
         UnityPlayer.UnitySendMessage(gameObjectName,"PluginCallBack","Hello Unity!");
     }
     //示例方法二：计算传入的参数并返回计算结果
@@ -58,7 +56,7 @@ public class MyPluginClass extends Fragment
         return one + another;
     }
 
-    ///
+    ///支付
     private static final int SDK_PAY_FLAG = 1;
     private static final String RESULT_SUCCESS = "9000";
     private static final String TIP_PAY_SUCCESS = "支付成功";
