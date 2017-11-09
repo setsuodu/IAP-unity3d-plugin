@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 using System.Collections.Generic;
 
 [System.Serializable]
@@ -18,6 +19,7 @@ public class AlipayUI : MonoBehaviour
     public List<Button> buttons = null;
     public List<PayInfo> payInfos = null;
     private AndroidJavaObject jo = null;
+    private Texture texture;
 
     void Start()
     {
@@ -99,5 +101,40 @@ public class AlipayUI : MonoBehaviour
         jo.Call("taobao", url); //void taobao()没有返回类型
     }
 
+    public void OnGallery()
+    {
+        //调用我们制作的Android插件打开手机相册
+        AndroidJavaClass jc = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+        AndroidJavaObject jo = jc.GetStatic<AndroidJavaObject>("currentActivity");
+        jo.Call("TakePhoto", "takeSave");
+    }
 
+    public void OnScreenshot()
+    {
+        //调用我们制作的Android插件打开手机摄像机
+        AndroidJavaClass jc = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+        AndroidJavaObject jo = jc.GetStatic<AndroidJavaObject>("currentActivity");
+        jo.Call("TakePhoto", "takePhoto");
+    }
+
+    void messgae(string str)
+    {
+        //在Android插件中通知Unity开始去指定路径中找图片资源
+        StartCoroutine(LoadTexture(str));
+    }
+
+    IEnumerator LoadTexture(string name)
+    {
+        //注解1
+        string path = "file://" + Application.persistentDataPath + "/" + name;
+        WWW www = new WWW(path);
+        while (!www.isDone)
+        {
+
+        }
+        yield return www;
+        //为贴图赋值
+        texture = www.texture;
+        Debug.Log("[saved to]" + path);
+    }
 }

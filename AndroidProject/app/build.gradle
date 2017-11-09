@@ -19,8 +19,7 @@ android {
 }
 
 dependencies {
-    //compile 'com.android.support:appcompat-v7:25.3.1'
-    //compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile files('libs/alipaySdk-20170922.jar')
-    compile files('libs/classes.jar')
+    implementation files('libs/classes.jar')
+    implementation files('libs/alipaySdk-20170922.jar')
+    implementation 'com.android.support:support-v4:26.0.2'
 }

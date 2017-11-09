@@ -6,6 +6,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
 import android.widget.Toast;
+import android.content.Context;
+import android.content.Intent;
 
 import demo.*;
 import com.alipay.sdk.app.PayTask;
@@ -19,6 +21,14 @@ public class MainActivity extends UnityPlayerActivity {
     private static final String RESULT_SUCCESS = "9000";
     private static final String TIP_PAY_SUCCESS = "支付成功";
     private static final String TIP_PAY_FAILED = "支付失败";
+
+    Context mContext = null;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mContext = this;
+    }
 
     // 支付结果回调，仅作参考，以服务端确认为准!
     @SuppressLint("HandlerLeak")
@@ -49,11 +59,6 @@ public class MainActivity extends UnityPlayerActivity {
         };
     };
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
     // Unity中调用
     public void Pay(String _orderInfo) {
         final String orderInfo = _orderInfo;
@@ -71,14 +76,20 @@ public class MainActivity extends UnityPlayerActivity {
                 mHandler.sendMessage(msg);
             }
         };
-
         Thread payThread = new Thread(payRunnable);
         payThread.start();
     }
 
     //示例方法一：简单的向Unity回调
-    public void SayHello()
-    {
+    public void SayHello() {
         UnityPlayer.UnitySendMessage("Main Camera", "PluginCallBack", "Hello Unity!");
+    }
+
+    //Unity中会调用这个方法，用于区分打开摄像机 开始本地相册
+    public void TakePhoto(String str)
+    {
+        Intent intent = new Intent(mContext,WebViewActivity.class);
+        intent.putExtra("type", str);
+        this.startActivity(intent);
     }
 }
