@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -12,6 +14,7 @@ import android.os.Build;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.widget.Toast;
+import android.view.View;
 
 import com.alipay.sdk.app.PayTask;
 import com.unity3d.player.UnityPlayer;
@@ -19,9 +22,8 @@ import com.unity3d.player.UnityPlayerActivity;
 
 import java.util.Map;
 
-import demo.PayResult;
 import demo.BadgeUtil;
-import demo.samsungbadger.*;
+import demo.PayResult;
 
 public class MyPluginClass extends Fragment
 {
@@ -170,29 +172,32 @@ public class MyPluginClass extends Fragment
     }
 
     public void SendBadge(){
-        //BadgeUtil.setBadgeCount(getActivity().getApplicationContext(), 1);
-        Context context = getActivity().getApplicationContext();
-        if (Badge.isBadgingSupported(context)) {
-            Badge badge = new Badge();
-            badge.mPackage = context.getPackageName();
-            badge.mClass = getClass().getName(); // This should point to Activity declared as android.intent.action.MAIN
-            badge.mBadgeCount = 1;
-            badge.save(context);
-        }
+        BadgeUtil.setBadgeCount(getActivity().getApplicationContext(), 1);
     }
 
     public void CleanBadge(){
-        //BadgeUtil.resetBadgeCount(getActivity().getApplicationContext());
-        Context context = getActivity().getApplicationContext();
-        if (Badge.isBadgingSupported(context)) {
-            Badge badge = Badge.getBadge(context);
-            if (badge != null) {
-                badge.mBadgeCount = 0;
-                badge.update(context);
-            } else {
-                // Nothing to do as this means you don't have a badge record with the BadgeProvider
-                // Thus you shouldn't even have a badge count on your icon
-            }
-        }
+        BadgeUtil.resetBadgeCount(getActivity().getApplicationContext());
+    }
+
+    //拷贝String到剪贴板
+    public void onClickCopy(String str) {
+        //获取剪贴板管理器：
+        ClipboardManager cm = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+        // 创建普通字符型ClipData
+        ClipData mClipData = ClipData.newPlainText("Label", str); //Label是任意文字标签
+        // 将ClipData内容放到系统剪贴板里。
+        cm.setPrimaryClip(mClipData);
+    }
+
+    //粘贴
+    public String onClickPaste(){
+        ClipboardManager cm = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+        String result = "";
+        ClipData clipData = cm.getPrimaryClip();
+        //result = cm.toString(); //ClipData{ text/plain "Label"{T:"str"}}; //取出的是ClipData
+        //result = cm.getText().toString(); //"str" //方法deprecated
+        ClipData.Item item = clipData.getItemAt(0); //这里获取第一条，也可以用遍历获取任意条
+        CharSequence charSequence = item.coerceToText(getActivity().getApplicationContext());
+        return result;
     }
 }

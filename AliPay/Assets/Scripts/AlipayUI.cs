@@ -13,7 +13,8 @@ public class PayInfo
 
 public class AlipayUI : MonoBehaviour
 {
-    public Text logText, resultText;
+    public Text logText, resultText, clipText;
+    public InputField m_clipInputField;
 
     public string className = "com.mier.mymirror.MyPluginClass";
     public List<Button> buttons = null;
@@ -104,7 +105,7 @@ public class AlipayUI : MonoBehaviour
     public void OnGallery()
     {
         //调用我们制作的Android插件打开手机相册
-        AndroidJavaClass jc = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+        AndroidJavaClass jc = new AndroidJavaClass("com.unity3d.player.UnityPlayer"); //方法在MainActivity中，而不是MyPluginClass
         AndroidJavaObject jo = jc.GetStatic<AndroidJavaObject>("currentActivity");
         jo.Call("TakePhoto", "takeSave");
     }
@@ -112,7 +113,7 @@ public class AlipayUI : MonoBehaviour
     public void OnScreenshot()
     {
         //调用我们制作的Android插件打开手机摄像机
-        AndroidJavaClass jc = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+        AndroidJavaClass jc = new AndroidJavaClass("com.unity3d.player.UnityPlayer"); //方法在MainActivity中，而不是MyPluginClass
         AndroidJavaObject jo = jc.GetStatic<AndroidJavaObject>("currentActivity");
         jo.Call("TakePhoto", "takePhoto");
     }
@@ -136,5 +137,15 @@ public class AlipayUI : MonoBehaviour
         //为贴图赋值
         texture = www.texture;
         Debug.Log("[saved to]" + path);
+    }
+
+    public void OnCopy()
+    {
+        jo.Call("onClickCopy", m_clipInputField.text);
+    }
+
+    public void OnPaste()
+    {
+        clipText.text = jo.Call<string>("onClickPaste");
     }
 }
