@@ -85,7 +85,7 @@ public class MainActivity extends UnityPlayerActivity {
         UnityPlayer.UnitySendMessage("Main Camera", "PluginCallBack", "Hello Unity!");
     }
 
-    //Unity中会调用这个方法，用于区分打开摄像机 开始本地相册
+    //Unity中会调用这个方法，用于区分打开摄像机，开始本地相册
     public void TakePhoto(String str)
     {
         Intent intent = new Intent(mContext,WebViewActivity.class);
