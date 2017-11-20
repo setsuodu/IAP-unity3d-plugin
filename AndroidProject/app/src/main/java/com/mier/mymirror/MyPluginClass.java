@@ -6,13 +6,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Build;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.widget.ImageView;
 import android.widget.Toast;
 import android.view.View;
 
@@ -20,6 +26,14 @@ import com.alipay.sdk.app.PayTask;
 import com.unity3d.player.UnityPlayer;
 import com.unity3d.player.UnityPlayerActivity;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Map;
 
 import demo.BadgeUtil;
@@ -30,7 +44,6 @@ public class MyPluginClass extends Fragment
     private static final String TAG = "MyPlugin";
     private static MyPluginClass Instance = null;
     private String gameObjectName;
-
     public static MyPluginClass GetInstance(String gameObject)
     {
         if(Instance == null)
@@ -200,4 +213,210 @@ public class MyPluginClass extends Fragment
         CharSequence charSequence = item.coerceToText(getActivity().getApplicationContext());
         return result;
     }
+
+    //拍照
+    //用于展示选择的图片
+    private ImageView mImageView;
+
+    private static final int CAMERA_CODE = 1;
+    private static final int GALLERY_CODE = 2;
+    private static final int CROP_CODE = 3;
+    private static final int VIDEO = 4;
+
+    /**
+     * 拍照选择图片
+     */
+    public void chooseFromCamera() {
+        //构建隐式Intent
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        //调用系统相机
+        startActivityForResult(intent, CAMERA_CODE);
+    }
+
+    /*
+     * 从相册选择图片
+     */
+    public void chooseFromGallery() {
+        //构建一个内容选择的Intent
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        //设置选择类型为图片类型
+        intent.setType("image/*");
+        //打开图片选择
+        startActivityForResult(intent, GALLERY_CODE);
+    }
+
+    /*
+    * 拍视频
+    */
+    public void chooseVideo() {
+        Intent intent = new Intent();
+        intent.setAction("android.media.action.VIDEO_CAPTURE");
+        intent.addCategory("android.intent.category.DEFAULT");
+
+        String destDir = getActivity().getExternalFilesDir(null).toString() + "/" + "video.mp4";
+        File file = new File(destDir);
+        if(file.exists()){
+            file.delete();
+        }
+        Uri uri = Uri.fromFile(file);
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+        startActivityForResult(intent, VIDEO);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode){
+            case CAMERA_CODE:
+                //用户点击了取消
+                if(data == null){
+                    return;
+                }else{
+                    Bundle extras = data.getExtras();
+                    if (extras != null){
+                        //获得拍的照片
+                        Bitmap bm = extras.getParcelable("data");
+                        //将Bitmap转化为uri
+                        Uri uri = saveBitmap(bm, "temp");
+                        //启动图像裁剪
+                        //startImageZoom(uri);
+
+                        String destDir = getActivity().getExternalFilesDir(null).toString();
+                        UnityPlayer.UnitySendMessage(gameObjectName,"CameraCallBack", destDir);
+                    }
+                }
+                break;
+            case GALLERY_CODE:
+                if (data == null){
+                    return;
+                }else{
+                    //用户从图库选择图片后会返回所选图片的Uri
+                    Uri uri;
+                    //获取到用户所选图片的Uri
+                    uri = data.getData();
+                    //返回的Uri为content类型的Uri,不能进行复制等操作,需要转换为文件Uri
+                    uri = convertUri(uri);
+                    //启动图像裁剪
+                    //startImageZoom(uri);
+
+                    String destDir = getActivity().getExternalFilesDir(null).toString();
+                    UnityPlayer.UnitySendMessage(gameObjectName,"GalleryCallBack",destDir);
+                }
+                break;
+            case CROP_CODE:
+                if (data == null){
+                    return;
+                }else{
+                    Bundle extras = data.getExtras();
+                    if (extras != null){
+                        //获取到裁剪后的图像
+                        Bitmap bm = extras.getParcelable("data");
+                        String destDir = getActivity().getExternalFilesDir(null).toString();
+                        Bitmap bitmap = getLoacalBitmap(destDir); //从本地取图片(在cdcard中获取)  //
+                        mImageView.setImageBitmap(bitmap); //设置Bitmap
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * 加载本地图片
+     * @param url
+     * @return
+     */
+    public static Bitmap getLoacalBitmap(String url) {
+        try {
+            FileInputStream fis = new FileInputStream(url);
+            return BitmapFactory.decodeStream(fis);  ///把流转化为Bitmap图片
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * 将content类型的Uri转化为文件类型的Uri
+     * @param uri
+     * @return
+     */
+    private Uri convertUri(Uri uri){
+        InputStream is;
+        try {
+            //Uri ----> InputStream
+            is = getActivity().getContentResolver().openInputStream(uri);
+            //InputStream ----> Bitmap
+            Bitmap bm = BitmapFactory.decodeStream(is);
+            //关闭流
+            is.close();
+            return saveBitmap(bm, "temp");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * 将Bitmap写入SD卡中的一个文件中,并返回写入文件的Uri
+     * @param bm
+     * @param dirPath
+     * @return
+     */
+    private Uri saveBitmap(Bitmap bm, String dirPath) {
+        //新建文件夹用于存放裁剪后的图片
+        File tmpDir = new File( getActivity().getExternalFilesDir(null).toString() + "/" + dirPath); //Environment.getExternalStorageDirectory()
+        if (!tmpDir.exists()){
+            tmpDir.mkdir();
+        }
+
+        //新建文件存储裁剪后的图片
+        File img = new File( tmpDir + "/shot.jpg"); //tmpDir.getAbsolutePath()
+        try {
+            //打开文件输出流
+            FileOutputStream fos = new FileOutputStream(img);
+            //将bitmap压缩后写入输出流(参数依次为图片格式、图片质量和输出流)
+            bm.compress(Bitmap.CompressFormat.PNG, 85, fos);
+            //刷新输出流
+            fos.flush();
+            //关闭输出流
+            fos.close();
+            //返回File类型的Uri
+            return Uri.fromFile(img);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+    }
+
+    /**
+     * 通过Uri传递图像信息以供裁剪
+     * @param uri
+     */
+    public void startImageZoom(Uri uri){
+        //构建隐式Intent来启动裁剪程序
+        Intent intent = new Intent("com.android.camera.action.CROP");
+        //设置数据uri和类型为图片类型
+        intent.setDataAndType(uri, "image/*");
+        //显示View为可裁剪的
+        intent.putExtra("crop", true);
+        //裁剪的宽高的比例为1:1
+        intent.putExtra("aspectX", 1);
+        intent.putExtra("aspectY", 1);
+        //输出图片的宽高均为150
+        intent.putExtra("outputX", 150);
+        intent.putExtra("outputY", 150);
+        //裁剪之后的数据是通过Intent返回
+        intent.putExtra("return-data", true);
+        startActivityForResult(intent, CROP_CODE);
+    }
+
 }

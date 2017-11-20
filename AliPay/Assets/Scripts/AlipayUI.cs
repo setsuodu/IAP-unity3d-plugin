@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 
 [System.Serializable]
 public class PayInfo
@@ -21,6 +22,7 @@ public class AlipayUI : MonoBehaviour
     public List<PayInfo> payInfos = null;
     private AndroidJavaObject jo = null;
     private Texture texture;
+    [SerializeField] private RawImage rawImage;
 
     void Start()
     {
@@ -102,6 +104,7 @@ public class AlipayUI : MonoBehaviour
         jo.Call("taobao", url); //void taobao()没有返回类型
     }
 
+    //拍照
     public void OnGallery()
     {
         //调用我们制作的Android插件打开手机相册
@@ -147,5 +150,73 @@ public class AlipayUI : MonoBehaviour
     public void OnPaste()
     {
         clipText.text = jo.Call<string>("onClickPaste");
+    }
+
+    //拍照
+    public void OnChooseFromCamera()
+    {
+        jo.Call("chooseFromCamera");
+    }
+
+    public void OnChooseFromGallery()
+    {
+        jo.Call("chooseFromGallery");
+    }
+
+    public void OnChooseVideo()
+    {
+        jo.Call("chooseVideo");
+    }
+
+    public void CameraCallBack(string log)
+    {
+        Debug.Log("[拍照路径回调]" + log);
+        //log = log.Substring(8, log.Length - 8);
+        LoadByIO();
+    }
+
+    public void GalleryCallBack(string log)
+    {
+        Debug.Log("[相册路径回调]" + log);
+        //log = log.Substring(8, log.Length - 8);
+        LoadByIO();
+    }
+
+    /// <summary>
+    /// 以IO方式进行加载
+    /// </summary>
+    private void LoadByIO()
+    {
+        //filePath = "file://" + filePath;
+        //Debug.Log("[IO]" + filePath);
+        string filePath = Application.persistentDataPath + "/temp/shot.jpg";
+        Debug.Log("[IO]" + filePath);
+
+        double startTime = (double)Time.time;
+        //创建文件读取流
+        FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+        fileStream.Seek(0, SeekOrigin.Begin);
+        //创建文件长度缓冲区
+        byte[] bytes = new byte[fileStream.Length];
+        //读取文件
+        fileStream.Read(bytes, 0, (int)fileStream.Length);
+        //释放文件读取流
+        fileStream.Close();
+        fileStream.Dispose();
+        fileStream = null;
+
+        //创建Texture
+        int width = 300;
+        int height = 372;
+        Texture2D t2d = new Texture2D(width, height);
+        t2d.LoadImage(bytes);
+
+        //创建Sprite
+        //Sprite sprite = Sprite.Create(t2d, new Rect(0, 0, t2d.width, t2d.height), new Vector2(0.5f, 0.5f));
+        //image.sprite = sprite;
+        rawImage.texture = t2d;
+
+        startTime = (double)Time.time - startTime;
+        Debug.Log("IO加载用时:" + startTime);
     }
 }
