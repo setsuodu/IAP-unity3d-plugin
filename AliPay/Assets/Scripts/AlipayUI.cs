@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using LitJson;
 
 [System.Serializable]
 public class PayInfo
@@ -26,6 +27,18 @@ public class AlipayUI : MonoBehaviour
 
     void Start()
     {
+        /*
+        string str = "aaa/bbb/ccc/ddd";
+        var array = str.Split('/');
+        Debug.Log(array[array.Length - 1]);
+        
+        string json = "\"/storage/emulated/0/netease/cloudmusic/Music/井口裕香 - Hey World.mp3\",";
+        json = "[" + json.Substring(0, json.Length - 1) + "]";
+        Debug.Log(json);
+        JsonData jd = JsonMapper.ToObject(json);
+        Debug.Log(jd.Count);
+        */
+
         // Init UI
         for (int i = 0; i < buttons.Count; i++)
         {
@@ -80,14 +93,7 @@ public class AlipayUI : MonoBehaviour
         jo.Call("openGPSSetting"); //void openGPSSetting()没有返回类型
     }
 
-
-    //角标
-    public void OnCheckOEM()
-    {
-        string res = jo.Call<string>("OnCheckOEM"); //void OnCheckOEM()没有返回类型
-        Debug.Log(res);
-    }
-
+    //Badge角标
     public void OnSetBadge()
     {
         jo.Call("SetBadge", 3); //3作为object对象，要与java函数中类型对应
@@ -98,50 +104,14 @@ public class AlipayUI : MonoBehaviour
         jo.Call("ResetBadge"); //void OnResetBadge()没有返回类型
     }
 
+    //淘宝
     string url = "https://item.taobao.com/item.htm?id=560384010422&ali_refid=a3_430406_1007:1150235186:N:7597500987074971615_0_100:ce6b98fb592c27b3a4befb5a73e7d620&ali_trackid=1_ce6b98fb592c27b3a4befb5a73e7d620&spm=a21bo.2017.201874-sales.15";
     public void OnTaobao()
     {
         jo.Call("taobao", url); //void taobao()没有返回类型
     }
 
-    //拍照
-    public void OnGallery()
-    {
-        //调用我们制作的Android插件打开手机相册
-        AndroidJavaClass jc = new AndroidJavaClass("com.unity3d.player.UnityPlayer"); //方法在MainActivity中，而不是MyPluginClass
-        AndroidJavaObject jo = jc.GetStatic<AndroidJavaObject>("currentActivity");
-        jo.Call("TakePhoto", "takeSave");
-    }
-
-    public void OnScreenshot()
-    {
-        //调用我们制作的Android插件打开手机摄像机
-        AndroidJavaClass jc = new AndroidJavaClass("com.unity3d.player.UnityPlayer"); //方法在MainActivity中，而不是MyPluginClass
-        AndroidJavaObject jo = jc.GetStatic<AndroidJavaObject>("currentActivity");
-        jo.Call("TakePhoto", "takePhoto");
-    }
-
-    void messgae(string str)
-    {
-        //在Android插件中通知Unity开始去指定路径中找图片资源
-        StartCoroutine(LoadTexture(str));
-    }
-
-    IEnumerator LoadTexture(string name)
-    {
-        //注解1
-        string path = "file://" + Application.persistentDataPath + "/" + name;
-        WWW www = new WWW(path);
-        while (!www.isDone)
-        {
-
-        }
-        yield return www;
-        //为贴图赋值
-        texture = www.texture;
-        Debug.Log("[saved to]" + path);
-    }
-
+    //剪贴板
     public void OnCopy()
     {
         jo.Call("onClickCopy", m_clipInputField.text);
@@ -149,7 +119,9 @@ public class AlipayUI : MonoBehaviour
 
     public void OnPaste()
     {
-        clipText.text = jo.Call<string>("onClickPaste");
+        string str = jo.Call<string>("onClickPaste");
+        clipText.text = str;
+        Debug.Log(str);
     }
 
     //拍照
@@ -218,5 +190,32 @@ public class AlipayUI : MonoBehaviour
 
         startTime = (double)Time.time - startTime;
         Debug.Log("IO加载用时:" + startTime);
+    }
+
+    List<string> musicList = new List<string>();
+    //本地音乐
+    public void OnGetMusic()
+    {
+        string json = jo.Call<string>("getAllMediaList"); // "/storage/emulated/0/netease/cloudmusic/Music/井口裕香 - Hey World.mp3",
+        json = "[" + json.Substring(0, json.Length - 1) + "]";
+        Debug.Log(json);
+        JsonData jd = JsonMapper.ToObject(json);
+        //Debug.Log(jd.Count);
+        for (int i = 0; i < jd.Count; i++)
+        {
+            string filePath = jd[i].ToString();
+            var array = filePath.Split('/');
+            string fileName = array[array.Length - 1];
+            Debug.Log("曲目" + i + fileName);
+            musicList.Add(filePath);
+        }
+        CopyFile(musicList[0]);
+    }
+
+    public void CopyFile(string oldPath)
+    {
+        string newPath = Application.persistentDataPath + "/temp.mp3";
+        Debug.Log(oldPath + " -> " + newPath);
+        jo.Call("copyFile", oldPath, newPath);
     }
 }

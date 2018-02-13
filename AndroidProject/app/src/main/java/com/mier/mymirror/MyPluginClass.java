@@ -34,7 +34,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+
+import android.database.Cursor;
+import android.util.Log;
 
 import demo.BadgeUtil;
 import demo.PayResult;
@@ -63,8 +68,7 @@ public class MyPluginClass extends Fragment
     }
 
     //示例方法一：简单的向Unity回调
-    public void SayHello()
-    {
+    public void SayHello() {
         UnityPlayer.UnitySendMessage(gameObjectName,"PluginCallBack","Hello Unity!");
     }
     //示例方法二：计算传入的参数并返回计算结果
@@ -73,7 +77,6 @@ public class MyPluginClass extends Fragment
         return one + another;
     }
 
-    ///
     private static final int SDK_PAY_FLAG = 1;
     private static final String RESULT_SUCCESS = "9000";
     private static final String TIP_PAY_SUCCESS = "支付成功";
@@ -168,18 +171,14 @@ public class MyPluginClass extends Fragment
     }
 
     //Badge
-    public String ShortCut()
-    {
+    public String ShortCut() {
         if (Build.MANUFACTURER.equalsIgnoreCase("xiaomi")){
             //小米
-            //xiaoMiShortCut(context, clazz, num);
             return "小米";
         }else if(Build.MANUFACTURER.equalsIgnoreCase("samsung")){
             //三星
-            //samsungShortCut(context, num);
             return "三星";
         }else {//其他原生系统手机
-            //installRawShortCut(context, MainActivity.class, isShowNum, num, isStroke);
             return "其他原生系统手机";
         }
     }
@@ -190,6 +189,16 @@ public class MyPluginClass extends Fragment
 
     public void CleanBadge(){
         BadgeUtil.resetBadgeCount(getActivity().getApplicationContext());
+    }
+
+    //淘宝
+    public void taobao(String str) {
+        Intent intent = new Intent();
+        intent.setAction("Android.intent.action.VIEW");
+        Uri uri = Uri.parse(str); // 商品地址
+        intent.setData(uri);
+        intent.setClassName("com.taobao.taobao", "com.taobao.tao.detail.activity.DetailActivity");
+        startActivity(intent);
     }
 
     //拷贝String到剪贴板
@@ -279,7 +288,6 @@ public class MyPluginClass extends Fragment
                         Uri uri = saveBitmap(bm, "temp");
                         //启动图像裁剪
                         //startImageZoom(uri);
-
                         String destDir = getActivity().getExternalFilesDir(null).toString();
                         UnityPlayer.UnitySendMessage(gameObjectName,"CameraCallBack", destDir);
                     }
@@ -297,7 +305,6 @@ public class MyPluginClass extends Fragment
                     uri = convertUri(uri);
                     //启动图像裁剪
                     //startImageZoom(uri);
-
                     String destDir = getActivity().getExternalFilesDir(null).toString();
                     UnityPlayer.UnitySendMessage(gameObjectName,"GalleryCallBack",destDir);
                 }
@@ -394,7 +401,6 @@ public class MyPluginClass extends Fragment
             e.printStackTrace();
             return null;
         }
-
     }
 
     /**
@@ -419,4 +425,84 @@ public class MyPluginClass extends Fragment
         startActivityForResult(intent, CROP_CODE);
     }
 
+    //6.音乐列表
+    public String getAllMediaList() {
+        Cursor cursor = null;
+        String output = "";
+        try
+        {
+            cursor = getActivity().getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                    new String[] {
+                            MediaStore.Audio.Media._ID,
+                            MediaStore.Audio.Media.TITLE,
+                            MediaStore.Audio.Media.DISPLAY_NAME,
+                            MediaStore.Audio.Media.DURATION,
+                            MediaStore.Audio.Media.ARTIST,
+                            MediaStore.Audio.Media.DATA,
+                            MediaStore.Audio.Media.SIZE},
+                    null, null, MediaStore.Audio.Media.DATE_ADDED + " DESC");
+            if(cursor == null) {
+                Log.d(TAG, "The getMediaList cursor is null.");
+                return "";
+            }
+            int count = cursor.getCount();
+            if(count <= 0) {
+                Log.d(TAG, "The getMediaList cursor count is 0.");
+                return "";
+            }
+            MediaEntity mediaEntity = null;
+            while (cursor.moveToNext()) {
+                mediaEntity = new MediaEntity();
+                mediaEntity.id = cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media._ID));
+                mediaEntity.title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
+                mediaEntity.display_name = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME));
+                mediaEntity.duration = cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
+                mediaEntity.size = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media.SIZE));
+                mediaEntity.artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+                mediaEntity.path = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+                if(!mediaEntity.path.contains("/storage/emulated/0/")){
+                    continue;
+                }
+                output += "\"" + mediaEntity.path + "\",";
+            }
+        }
+        catch (Exception e) {}
+        finally
+        {
+            if(cursor != null) {
+                cursor.close();
+            }
+        }
+        return output;
+    }
+
+    /** 复制单个文件
+    * @param oldPath String 原文件路径 如：c:/fqf.txt
+    * @param newPath String 复制后路径 如：f:/fqf.txt
+    * @return boolean
+    */
+    public void copyFile(String oldPath, String newPath) {
+        try {
+            int bytesum = 0;
+            int byteread = 0;
+            File oldfile = new File(oldPath);
+            if (oldfile.exists()) { //文件存在时
+                InputStream inStream = new FileInputStream(oldPath); //读入原文件
+                FileOutputStream fs = new FileOutputStream(newPath);
+                byte[] buffer = new byte[1444];
+                int length;
+                while ( (byteread = inStream.read(buffer)) != -1) {
+                    bytesum += byteread; //字节数 文件大小
+                    System.out.println(bytesum);
+                    fs.write(buffer, 0, byteread);
+                }
+                inStream.close();
+            }
+            UnityPlayer.UnitySendMessage(gameObjectName,"PluginCallBack","复制成功!");
+        }
+        catch (Exception e) {
+            System.out.println("复制单个文件操作出错");
+            e.printStackTrace();
+        }
+    }
 }
