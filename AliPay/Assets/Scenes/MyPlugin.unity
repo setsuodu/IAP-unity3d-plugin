@@ -1513,7 +1513,7 @@ MonoBehaviour:
   - subject: "\u94BB\u77F320"
     money: 10
     title: zuan20
-  rawImage: {fileID: 2147363860}
+  mainImage: {fileID: 2147363860}
 --- !u!1 &869562454
 GameObject:
   m_ObjectHideFlags: 0
@@ -3633,7 +3633,7 @@ GameObject:
   - component: {fileID: 2147363861}
   - component: {fileID: 2147363860}
   m_Layer: 5
-  m_Name: RawImage
+  m_Name: Main Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3647,24 +3647,25 @@ MonoBehaviour:
   m_GameObject: {fileID: 2147363859}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: -98529514, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Script: {fileID: -765806418, guid: f70555f144d8491a825f0804e09c671c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
     m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-  m_Texture: {fileID: 0}
-  m_UVRect:
-    serializedVersion: 2
-    x: 0
-    y: 0
-    width: 1
-    height: 1
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
 --- !u!222 &2147363861
 CanvasRenderer:
   m_ObjectHideFlags: 0

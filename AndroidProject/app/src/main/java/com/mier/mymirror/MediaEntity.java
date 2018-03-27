@@ -15,5 +15,4 @@ public class MediaEntity implements Serializable {
     public String artist; // 艺术家
     public String singer; //歌手
     public long size;
-
 }

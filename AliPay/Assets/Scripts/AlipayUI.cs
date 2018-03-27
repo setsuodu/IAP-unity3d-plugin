@@ -15,30 +15,19 @@ public class PayInfo
 
 public class AlipayUI : MonoBehaviour
 {
-    public Text logText, resultText, clipText;
-    public InputField m_clipInputField;
+    [SerializeField] private Text logText, resultText, clipText;
+    [SerializeField] private InputField m_clipInputField;
+    [SerializeField] private Image mainImage;
 
     public string className = "com.mier.mymirror.MyPluginClass";
     public List<Button> buttons = null;
     public List<PayInfo> payInfos = null;
-    private AndroidJavaObject jo = null;
+
     private Texture texture;
-    [SerializeField] private RawImage rawImage;
+    private AndroidJavaObject jo = null;
 
     void Start()
     {
-        /*
-        string str = "aaa/bbb/ccc/ddd";
-        var array = str.Split('/');
-        Debug.Log(array[array.Length - 1]);
-        
-        string json = "\"/storage/emulated/0/netease/cloudmusic/Music/井口裕香 - Hey World.mp3\",";
-        json = "[" + json.Substring(0, json.Length - 1) + "]";
-        Debug.Log(json);
-        JsonData jd = JsonMapper.ToObject(json);
-        Debug.Log(jd.Count);
-        */
-
         // Init UI
         for (int i = 0; i < buttons.Count; i++)
         {
@@ -68,7 +57,6 @@ public class AlipayUI : MonoBehaviour
     //jo.Call("AlipayClient", payInfo.money, payInfo.title, "");
     public void Alipay(PayInfo payInfo)
     {
-        //jo.Call("Pay", "商品,详情,1.0元"); //void Pay()，没有返回类型
         string res = jo.Call<string>("AlipayClient", "商品,详情,1.0元"); //void Pay()，没有返回类型
         Debug.Log("[res]" + res);
     }
@@ -93,19 +81,22 @@ public class AlipayUI : MonoBehaviour
         jo.Call("openGPSSetting"); //void openGPSSetting()没有返回类型
     }
 
-    //Badge角标
+    //设置Badge角标为1
     public void OnSetBadge()
     {
-        jo.Call("SetBadge", 3); //3作为object对象，要与java函数中类型对应
+        //jo.Call("SetBadge", 3); //3作为object对象，要与java函数中类型对应
+        jo.Call("SendBadge"); //3作为object对象，要与java函数中类型对应
     }
 
+    //清除Badge角标
     public void OnResetBadge()
     {
-        jo.Call("ResetBadge"); //void OnResetBadge()没有返回类型
+        jo.Call("CleanBadge");
     }
 
     //淘宝
-    string url = "https://item.taobao.com/item.htm?id=560384010422&ali_refid=a3_430406_1007:1150235186:N:7597500987074971615_0_100:ce6b98fb592c27b3a4befb5a73e7d620&ali_trackid=1_ce6b98fb592c27b3a4befb5a73e7d620&spm=a21bo.2017.201874-sales.15";
+    //string url = "https://item.taobao.com/item.htm?spm=a230r.1.14.41.5a4e6353yVPUB4&id=538143998548&ns=1&abbucket=6#detail";
+    string url = "https://item.taobao.com/item.htm?id=538143998548"; //最短引用，填商品id即可
     public void OnTaobao()
     {
         jo.Call("taobao", url); //void taobao()没有返回类型
@@ -184,9 +175,9 @@ public class AlipayUI : MonoBehaviour
         t2d.LoadImage(bytes);
 
         //创建Sprite
-        //Sprite sprite = Sprite.Create(t2d, new Rect(0, 0, t2d.width, t2d.height), new Vector2(0.5f, 0.5f));
-        //image.sprite = sprite;
-        rawImage.texture = t2d;
+        Sprite sprite = Sprite.Create(t2d, new Rect(0, 0, t2d.width, t2d.height), new Vector2(0.5f, 0.5f));
+        mainImage.sprite = sprite;
+        mainImage.preserveAspect = true;
 
         startTime = (double)Time.time - startTime;
         Debug.Log("IO加载用时:" + startTime);

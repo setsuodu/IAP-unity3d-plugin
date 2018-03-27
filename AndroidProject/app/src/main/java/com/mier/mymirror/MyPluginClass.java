@@ -71,6 +71,12 @@ public class MyPluginClass extends Fragment
     public void SayHello() {
         UnityPlayer.UnitySendMessage(gameObjectName,"PluginCallBack","Hello Unity!");
     }
+
+    //unity打印
+    public void UnityDebug(String log){
+        UnityPlayer.UnitySendMessage(gameObjectName,"PluginCallBack", log);
+    }
+
     //示例方法二：计算传入的参数并返回计算结果
     public int CalculateAdd(int one, int another)
     {
@@ -85,7 +91,6 @@ public class MyPluginClass extends Fragment
     // 支付结果回调，仅作参考，以服务端确认为准!
     @SuppressLint("HandlerLeak")
     private Handler mHandler = new Handler() {
-        @SuppressWarnings("unused")
         public void handleMessage(Message msg)
         {
             switch (msg.what)
@@ -108,7 +113,7 @@ public class MyPluginClass extends Fragment
                 default:
                     break;
             }
-        };
+        }
     };
 
     // Unity中调用
@@ -220,13 +225,15 @@ public class MyPluginClass extends Fragment
         //result = cm.getText().toString(); //"str" //方法deprecated
         ClipData.Item item = clipData.getItemAt(0); //这里获取第一条，也可以用遍历获取任意条
         CharSequence charSequence = item.coerceToText(getActivity().getApplicationContext());
+
+        UnityDebug("onClickPaste: " + result);
+
         return result;
     }
 
     //拍照
     //用于展示选择的图片
     private ImageView mImageView;
-
     private static final int CAMERA_CODE = 1;
     private static final int GALLERY_CODE = 2;
     private static final int CROP_CODE = 3;
@@ -498,7 +505,7 @@ public class MyPluginClass extends Fragment
                 }
                 inStream.close();
             }
-            UnityPlayer.UnitySendMessage(gameObjectName,"PluginCallBack","复制成功!");
+            UnityDebug("复制成功!");
         }
         catch (Exception e) {
             System.out.println("复制单个文件操作出错");
