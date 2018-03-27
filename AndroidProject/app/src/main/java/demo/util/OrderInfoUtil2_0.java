@@ -12,7 +12,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 
+import com.google.gson.Gson;
+
 import demo.SignUtils;
+import demo.util.OrderBodyInfo;
 
 public class OrderInfoUtil2_0 {
 	
@@ -62,30 +65,28 @@ public class OrderInfoUtil2_0 {
 
 	/**
 	 * 构造支付订单参数列表
-	 * @param pid
 	 * @param app_id
-	 * @param target_id
 	 * @return
 	 */
-	public static Map<String, String> buildOrderParamMap(String app_id, boolean rsa2) {
-		Map<String, String> keyValues = new HashMap<String, String>();
+    public static Map<String, String> buildOrderParamMap(String app_id, String productname, String productprice, String  productid, boolean rsa2) {
 
-		keyValues.put("app_id", app_id);
+        Map<String, String> keyValues = new HashMap<String, String>();
 
-		keyValues.put("biz_content", "{\"timeout_express\":\"30m\",\"product_code\":\"QUICK_MSECURITY_PAY\",\"total_amount\":\"0.01\",\"subject\":\"1\",\"body\":\"我是测试数据\",\"out_trade_no\":\"" + getOutTradeNo() +  "\"}");
-		
-		keyValues.put("charset", "utf-8");
+        keyValues.put("app_id", app_id);
 
-		keyValues.put("method", "alipay.trade.app.pay");
+        OrderBodyInfo sss = new  OrderBodyInfo("xx",productname,getOutTradeNo(),"30m",productprice,productid);
+        Gson gson = new Gson();
+        String str = gson.toJson(sss);
 
-		keyValues.put("sign_type", rsa2 ? "RSA2" : "RSA");
+        keyValues.put("biz_content", str);
+        keyValues.put("charset", "utf-8");
+        keyValues.put("method", "alipay.trade.app.pay");
+        keyValues.put("sign_type", rsa2 ? "RSA2" : "RSA");
+        keyValues.put("timestamp", "2016-07-29 16:55:53");
+        keyValues.put("version", "1.0");
 
-		keyValues.put("timestamp", "2016-07-29 16:55:53");
-
-		keyValues.put("version", "1.0");
-		
-		return keyValues;
-	}
+        return keyValues;
+    }
 	
 	/**
 	 * 构造支付订单参数信息

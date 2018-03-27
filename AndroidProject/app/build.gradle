@@ -19,7 +19,8 @@ android {
 }
 
 dependencies {
-    implementation files('libs/classes.jar')
-    implementation files('libs/alipaySdk-20170922.jar')
-    implementation 'com.android.support:support-v4:26.0.2'
+    compile 'com.android.support:support-v4:26.0.2'
+    compile files('libs/classes.jar')
+    compile files('libs/alipaySdk-20180316.jar')
+    compile files('libs/gson-2.0.jar')
 }

@@ -25,6 +25,7 @@ public class AlipayUI : MonoBehaviour
 
     private Texture texture;
     private AndroidJavaObject jo = null;
+    string url = "http://122.112.233.193:9090/alipay_create.php";
 
     void Start()
     {
@@ -33,22 +34,13 @@ public class AlipayUI : MonoBehaviour
         {
             var payInfo = payInfos[i];
             buttons[i].GetComponentInChildren<Text>().text = payInfos[i].subject;
-#if UNITY_ANDROID && !UNITY_EDITOR
-            buttons[i].onClick.AddListener(() =>
-            {
-                Alipay(payInfo);
-            });
-#endif
+            //buttons[i].onClick.AddListener(() => Alipay());
         }
-        // 固定写法
-        //AndroidJavaClass jc = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
-        //jo = jc.GetStatic<AndroidJavaObject>("currentActivity");
-        //jo.Call("SayHello");
 
         AndroidJavaClass jc = new AndroidJavaClass(className);
-        jo = jc.CallStatic<AndroidJavaObject>("GetInstance", gameObject.name); //Main Camera
-        jo.Call("SayHello"); //void SayHello()，没有返回类型
-        resultText.text = jo.Call<int>("CalculateAdd", 12, 34).ToString(); //int CalculateAdd()，有返回类型
+        jo = jc.CallStatic<AndroidJavaObject>("GetInstance", gameObject.name);
+        jo.Call("SayHello");
+        resultText.text = jo.Call<int>("CalculateAdd", 12, 34).ToString();
     }
 
     // AlipayClient是Android里的方法名字，写死.
@@ -59,6 +51,51 @@ public class AlipayUI : MonoBehaviour
     {
         string res = jo.Call<string>("AlipayClient", "商品,详情,1.0元"); //void Pay()，没有返回类型
         Debug.Log("[res]" + res);
+    }
+
+    public void Alipay()
+    {
+        StartCoroutine(OnCreate());
+    }
+
+    /* 生成订单信息
+     * out_trade_no是指商户网站唯一订单号，在商户端唯一，
+     * 每个商户订单号会对应一个支付宝订单号 ，此订单号由
+     * 珊瑚自己生成，商户订单号要求64个字符以内、可包含字
+     * 母、数字、下划线；需保证在商户端不重复，建议格式当
+     * 前时间+自定义数字 。更多内容请参见相关开放平台接口
+     * 文档中的请求参数。
+     */
+    
+    static string out_trade_no
+    {
+        get
+        {
+            //不重复的订单号
+            return System.DateTime.Now.Ticks.ToString();
+        }
+    }
+
+    IEnumerator OnCreate()
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("body", "我是测试数据");
+        form.AddField("subject", "App支付测试");         //订单名称
+        form.AddField("out_trade_no", out_trade_no); //合成out_trade_no
+        form.AddField("timeout_express", "30m");         //订单失效时间
+        form.AddField("total_amount", "0.01");           //根据不同商品调整价格
+        //form.AddField("product_code", "QUICK_MSECURITY_PAY"); //固定
+        WWW www = new WWW(url, form);
+        yield return www;
+        if (!string.IsNullOrEmpty(www.error))
+        {
+            Debug.Log(www.error);
+        }
+        Debug.Log(www.text); //返回加签后的orderStr
+        string info = www.text;
+
+        string ordersss = jo.Call<string>("Pay", info);
+        Debug.Log("ordersss: " + ordersss);
     }
 
     public void PluginCallBack(string text)
@@ -95,10 +132,11 @@ public class AlipayUI : MonoBehaviour
     }
 
     //淘宝
-    //string url = "https://item.taobao.com/item.htm?spm=a230r.1.14.41.5a4e6353yVPUB4&id=538143998548&ns=1&abbucket=6#detail";
-    string url = "https://item.taobao.com/item.htm?id=538143998548"; //最短引用，填商品id即可
     public void OnTaobao()
     {
+        //最短引用，填商品id即可
+        string url = "https://item.taobao.com/item.htm?id=538143998548";
+
         jo.Call("taobao", url); //void taobao()没有返回类型
     }
 
@@ -209,4 +247,5 @@ public class AlipayUI : MonoBehaviour
         Debug.Log(oldPath + " -> " + newPath);
         jo.Call("copyFile", oldPath, newPath);
     }
+
 }

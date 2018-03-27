@@ -23,6 +23,7 @@ import android.widget.Toast;
 import android.view.View;
 
 import com.alipay.sdk.app.PayTask;
+import com.alipay.sdk.app.EnvUtils;
 import com.unity3d.player.UnityPlayer;
 import com.unity3d.player.UnityPlayerActivity;
 
@@ -43,6 +44,7 @@ import android.util.Log;
 
 import demo.BadgeUtil;
 import demo.PayResult;
+import demo.util.OrderInfoUtil2_0;
 
 public class MyPluginClass extends Fragment
 {
@@ -83,29 +85,43 @@ public class MyPluginClass extends Fragment
         return one + another;
     }
 
+    //支付
+    public static final String APPID = "填写应用APPID"; //沙箱版
+    public static final String RSA_PRIVATE = "";
+    public static final String RSA2_PRIVATE = "填写RSA2应用私钥";
     private static final int SDK_PAY_FLAG = 1;
+    public String productid;
+
     private static final String RESULT_SUCCESS = "9000";
     private static final String TIP_PAY_SUCCESS = "支付成功";
     private static final String TIP_PAY_FAILED = "支付失败";
 
-    // 支付结果回调，仅作参考，以服务端确认为准!
-    @SuppressLint("HandlerLeak")
+    // 支付回调
+    @SuppressWarnings("HandlerLeak")
     private Handler mHandler = new Handler() {
-        public void handleMessage(Message msg)
-        {
-            switch (msg.what)
-            {
-                case SDK_PAY_FLAG:
-                {
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case SDK_PAY_FLAG: {
                     @SuppressWarnings("unchecked")
+
                     PayResult payResult = new PayResult((Map<String, String>) msg.obj);
-                    String resultInfo = payResult.getResult();
-                    String resultStatus = payResult.getResultStatus();
+                    //对于支付结果，请商户依赖服务端的异步通知结果。同步通知结果，仅作为支付结束的通知。
+                    String resultInfo = payResult.getResult(); // 同步返回需要验证的信息
+                    String resultStatus = payResult.getResultStatus(); //9000成功 //6001用户中途取消
+
+                    UnityDebug("resultInfo: " + resultInfo);
+                    UnityDebug("resultStatus: " + resultStatus);
+
+                    // 判断resultStatus 为9000则代表支付成功
                     if (TextUtils.equals(resultStatus, RESULT_SUCCESS))
                     {
+                        // 该笔订单是否真实支付成功，需要依赖服务端的异步通知。
                         Toast.makeText(getActivity(), TIP_PAY_SUCCESS, Toast.LENGTH_SHORT).show();
-                    } else
+                        //PayResultToUnity(productid);
+                    }
+                    else
                     {
+                        // 该笔订单真实的支付结果，需要依赖服务端的异步通知。
                         Toast.makeText(getActivity(), TIP_PAY_FAILED, Toast.LENGTH_SHORT).show();
                     }
                     break;
@@ -116,47 +132,77 @@ public class MyPluginClass extends Fragment
         }
     };
 
-    // Unity中调用
-    public void Pay(String _orderInfo) {
-        final String orderInfo = _orderInfo;
+    // Unity中调用，服务端php合成orderStr
+    public String Pay(final String info) {
+        final String orderInfo = info;
+
         Runnable payRunnable = new Runnable()
         {
-
             @Override
             public void run()
             {
+                EnvUtils.setEnv(EnvUtils.EnvEnum.SANDBOX); //沙箱环境
                 PayTask alipay = new PayTask(getActivity());
                 Map<String, String> result = alipay.payV2(orderInfo, true);
+
+                UnityDebug("result: " + result.toString());
+                UnityDebug("orderStr: " + orderInfo);
+
                 Message msg = new Message();
                 msg.what = SDK_PAY_FLAG;
                 msg.obj = result;
                 mHandler.sendMessage(msg);
             }
         };
+        //必须异步调用
         Thread payThread = new Thread(payRunnable);
         payThread.start();
-    }
 
-    public String AlipayClient(String _orderInfo) {
-        final String orderInfo = _orderInfo;
-        Runnable payRunnable = new Runnable()
-        {
-
-            @Override
-            public void run()
-            {
-                PayTask alipay = new PayTask(getActivity());
-                Map<String, String> result = alipay.payV2(orderInfo, true);
-                Message msg = new Message();
-                msg.what = SDK_PAY_FLAG;
-                msg.obj = result;
-                mHandler.sendMessage(msg);
-            }
-        };
-        Thread payThread = new Thread(payRunnable);
-        payThread.start();
         return orderInfo;
     }
+
+    //支付宝支付业务，插件中合成orderStr
+    public String Alipay(String name,String price,String productid) {
+        this.productid = productid;
+        boolean rsa2 = (RSA2_PRIVATE.length() > 0);
+        Map<String, String> params = OrderInfoUtil2_0.buildOrderParamMap(APPID,name,price,productid,rsa2);
+        String orderParam = OrderInfoUtil2_0.buildOrderParam(params);
+
+        String privateKey = rsa2 ? RSA2_PRIVATE : RSA_PRIVATE;
+        String sign = OrderInfoUtil2_0.getSign(params, privateKey, rsa2);
+        final String orderInfo = orderParam + "&" + sign;
+
+        Runnable payRunnable = new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                EnvUtils.setEnv(EnvUtils.EnvEnum.SANDBOX); //沙箱环境
+                PayTask alipay = new PayTask(getActivity());
+                Map<String, String> result = alipay.payV2(orderInfo, true);
+
+                UnityDebug("result: " + result.toString());
+                UnityDebug("orderStr: " + orderInfo);
+
+                Message msg = new Message();
+                msg.what = SDK_PAY_FLAG;
+                msg.obj = result;
+                mHandler.sendMessage(msg);
+            }
+        };
+        //必须异步调用
+        Thread payThread = new Thread(payRunnable);
+        payThread.start();
+
+        return orderInfo;
+    }
+
+    //返回给Unity
+    public void PayResultToUnity(String productid) {
+        //物体名字，   方法名字    方法的参数
+        UnityPlayer.UnitySendMessage("Canvas","PayResult",productid);
+    }
+
 
     //GPS
     LocationManager locationManager;
