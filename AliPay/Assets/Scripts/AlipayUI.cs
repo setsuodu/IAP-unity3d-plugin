@@ -25,7 +25,7 @@ public class AlipayUI : MonoBehaviour
 
     private Texture texture;
     private AndroidJavaObject jo = null;
-    string url = "http://122.112.233.193:9090/alipay_create.php";
+    string url = "http://122.112.233.193:9090/index.php";
 
     void Start()
     {
