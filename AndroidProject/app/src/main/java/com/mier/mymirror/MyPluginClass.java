@@ -79,6 +79,11 @@ public class MyPluginClass extends Fragment
         UnityPlayer.UnitySendMessage(gameObjectName,"PluginCallBack", log);
     }
 
+    //给unity返回RESULT_SUCCESS，通知支付结果
+    public void StatusCallback(String log){
+        UnityPlayer.UnitySendMessage(gameObjectName,"StatusCallback", log);
+    }
+
     //示例方法二：计算传入的参数并返回计算结果
     public int CalculateAdd(int one, int another)
     {
