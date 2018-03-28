@@ -5,14 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using LitJson;
 
-[System.Serializable]
-public class PayInfo
-{
-    public string subject;  // 显示在按钮上的内容,跟支付无关系  
-    public float money;     // 商品价钱  
-    public string title;    // 商品描述  
-}
-
 public class AlipayUI : MonoBehaviour
 {
     [SerializeField] private Text logText, resultText, clipText;
@@ -25,7 +17,6 @@ public class AlipayUI : MonoBehaviour
 
     private Texture texture;
     private AndroidJavaObject jo = null;
-    string url = "http://122.112.233.193:9090/index.php";
 
     void Start()
     {
@@ -43,21 +34,6 @@ public class AlipayUI : MonoBehaviour
         resultText.text = jo.Call<int>("CalculateAdd", 12, 34).ToString();
     }
 
-    // AlipayClient是Android里的方法名字，写死.
-    // payInfo.money是要付的钱，只能精确分.
-    // payInfo.title是商品描述信息，注意不能有空格.
-    //jo.Call("AlipayClient", payInfo.money, payInfo.title, "");
-    public void Alipay(PayInfo payInfo)
-    {
-        string res = jo.Call<string>("AlipayClient", "商品,详情,1.0元"); //void Pay()，没有返回类型
-        Debug.Log("[res]" + res);
-    }
-
-    public void Alipay()
-    {
-        StartCoroutine(OnCreate());
-    }
-
     /* 生成订单信息
      * out_trade_no是指商户网站唯一订单号，在商户端唯一，
      * 每个商户订单号会对应一个支付宝订单号 ，此订单号由
@@ -66,41 +42,61 @@ public class AlipayUI : MonoBehaviour
      * 前时间+自定义数字 。更多内容请参见相关开放平台接口
      * 文档中的请求参数。
      */
-    
     static string out_trade_no
     {
         get
         {
             //不重复的订单号
-            return System.DateTime.Now.Ticks.ToString();
+            return System.DateTime.Now.ToString("yyyyMMddHHmmss");
         }
     }
 
-    IEnumerator OnCreate()
+    // AlipayClient是Android里的方法名字，写死.
+    // payInfo.money是要付的钱，只能精确分.
+    // payInfo.title是商品描述信息，注意不能有空格.
+    //jo.Call("AlipayClient", payInfo.money, payInfo.title, "");
+    public void Alipay()
     {
+        /*
+        PayInfo payinfo = new PayInfo();
+        payinfo.body = "我是测试数据";
+        payinfo.subject = "App支付测试";
+        payinfo.out_trade_no = out_trade_no;
+        payinfo.timeout_express = "30m";
+        payinfo.total_amount = "0.01";
+        */
+
         WWWForm form = new WWWForm();
         form.AddField("body", "我是测试数据");
         form.AddField("subject", "App支付测试");         //订单名称
-        form.AddField("out_trade_no", out_trade_no); //合成out_trade_no
+        form.AddField("out_trade_no", out_trade_no);     //合成out_trade_no
         form.AddField("timeout_express", "30m");         //订单失效时间
         form.AddField("total_amount", "0.01");           //根据不同商品调整价格
         //form.AddField("product_code", "QUICK_MSECURITY_PAY"); //固定
+
+        string url = "http://122.112.233.193:9090/";
         WWW www = new WWW(url, form);
-        yield return www;
+        while (!www.isDone) { }
         if (!string.IsNullOrEmpty(www.error))
         {
             Debug.Log(www.error);
         }
-        Debug.Log(www.text); //返回加签后的orderStr
-        string info = www.text;
+        //Debug.Log(www.text); //返回加签后的orderStr
 
-        string ordersss = jo.Call<string>("Pay", info);
-        Debug.Log("ordersss: " + ordersss);
+        string orderStr = jo.Call<string>("Pay", www.text);
+        Debug.Log("orderStr: " + orderStr);
     }
 
-    public void PluginCallBack(string text)
+    public void PluginCallBack(string log)
     {
-        logText.text = text;
+        logText.text = log;
+        Debug.Log("plugin callback: " + log);
+    }
+
+    public void StatusCallback(string log)
+    {
+        logText.text = log;
+        Debug.Log("pay status: " + log);
     }
 
     //检查GPS是否打开
@@ -116,6 +112,14 @@ public class AlipayUI : MonoBehaviour
     public void OnOpenGPSSettings()
     {
         jo.Call("openGPSSetting"); //void openGPSSetting()没有返回类型
+    }
+
+    //检查安卓手机厂商
+    public void OnCheckOEM()
+    {
+        string str = jo.Call<string>("CheckOEM");
+        clipText.text = str;
+        Debug.Log(str);
     }
 
     //设置Badge角标为1
@@ -248,4 +252,14 @@ public class AlipayUI : MonoBehaviour
         jo.Call("copyFile", oldPath, newPath);
     }
 
+}
+
+[System.Serializable]
+public class PayInfo
+{
+    public string body;                     //商品描述
+    public string subject;                  //显示在按钮上的内容,跟支付无关系
+    public string out_trade_no;             //订单号
+    public string timeout_express = "30m";  //过期时间
+    public string total_amount;             //商品价钱
 }

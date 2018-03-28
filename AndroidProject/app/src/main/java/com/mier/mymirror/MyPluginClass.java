@@ -79,7 +79,7 @@ public class MyPluginClass extends Fragment
         UnityPlayer.UnitySendMessage(gameObjectName,"PluginCallBack", log);
     }
 
-    //给unity返回RESULT_SUCCESS，通知支付结果
+    //返回RESULT_SUCCESS给unity
     public void StatusCallback(String log){
         UnityPlayer.UnitySendMessage(gameObjectName,"StatusCallback", log);
     }
@@ -114,8 +114,8 @@ public class MyPluginClass extends Fragment
                     String resultInfo = payResult.getResult(); // 同步返回需要验证的信息
                     String resultStatus = payResult.getResultStatus(); //9000成功 //6001用户中途取消
 
-                    UnityDebug("resultInfo: " + resultInfo);
-                    UnityDebug("resultStatus: " + resultStatus);
+                    //UnityDebug("resultInfo: " + resultInfo);
+                    StatusCallback(resultStatus); //4001/6001/9000
 
                     // 判断resultStatus 为9000则代表支付成功
                     if (TextUtils.equals(resultStatus, RESULT_SUCCESS))
@@ -150,8 +150,8 @@ public class MyPluginClass extends Fragment
                 PayTask alipay = new PayTask(getActivity());
                 Map<String, String> result = alipay.payV2(orderInfo, true);
 
-                UnityDebug("result: " + result.toString());
-                UnityDebug("orderStr: " + orderInfo);
+                //UnityDebug("result: " + result.toString());
+                //UnityDebug("orderStr: " + orderInfo);
 
                 Message msg = new Message();
                 msg.what = SDK_PAY_FLAG;
@@ -186,8 +186,8 @@ public class MyPluginClass extends Fragment
                 PayTask alipay = new PayTask(getActivity());
                 Map<String, String> result = alipay.payV2(orderInfo, true);
 
-                UnityDebug("result: " + result.toString());
-                UnityDebug("orderStr: " + orderInfo);
+                //UnityDebug("result: " + result.toString());
+                //UnityDebug("orderStr: " + orderInfo);
 
                 Message msg = new Message();
                 msg.what = SDK_PAY_FLAG;
@@ -208,7 +208,6 @@ public class MyPluginClass extends Fragment
         UnityPlayer.UnitySendMessage("Canvas","PayResult",productid);
     }
 
-
     //GPS
     LocationManager locationManager;
     public boolean checkGPSIsOpen() {
@@ -226,19 +225,21 @@ public class MyPluginClass extends Fragment
         startActivity(i);
     }
 
-    //Badge
-    public String ShortCut() {
+    //检查安卓手机厂商
+    public String CheckOEM() {
         if (Build.MANUFACTURER.equalsIgnoreCase("xiaomi")){
             //小米
             return "小米";
         }else if(Build.MANUFACTURER.equalsIgnoreCase("samsung")){
             //三星
             return "三星";
-        }else {//其他原生系统手机
+        }else {
+            //其他原生系统手机
             return "其他原生系统手机";
         }
     }
 
+    //Badge
     public void SendBadge(){
         BadgeUtil.setBadgeCount(getActivity().getApplicationContext(), 1);
     }
@@ -265,18 +266,20 @@ public class MyPluginClass extends Fragment
         ClipData mClipData = ClipData.newPlainText("Label", str); //Label是任意文字标签
         // 将ClipData内容放到系统剪贴板里。
         cm.setPrimaryClip(mClipData);
+
+        UnityDebug("onClickCopy: " + cm.toString());
     }
 
     //粘贴
     public String onClickPaste(){
         ClipboardManager cm = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-        String result = "";
         ClipData clipData = cm.getPrimaryClip();
         //result = cm.toString(); //ClipData{ text/plain "Label"{T:"str"}}; //取出的是ClipData
         //result = cm.getText().toString(); //"str" //方法deprecated
         ClipData.Item item = clipData.getItemAt(0); //这里获取第一条，也可以用遍历获取任意条
         CharSequence charSequence = item.coerceToText(getActivity().getApplicationContext());
 
+        String result = charSequence.toString();
         UnityDebug("onClickPaste: " + result);
 
         return result;
