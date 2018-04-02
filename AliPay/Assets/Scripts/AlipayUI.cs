@@ -87,18 +87,6 @@ public class AlipayUI : MonoBehaviour
         Debug.Log("orderStr: " + orderStr);
     }
 
-    public void PluginCallBack(string log)
-    {
-        logText.text = log;
-        Debug.Log("plugin callback: " + log);
-    }
-
-    public void StatusCallback(string log)
-    {
-        logText.text = log;
-        Debug.Log("pay status: " + log);
-    }
-
     //检查GPS是否打开
     public void OnCheckGPS()
     {
@@ -173,20 +161,6 @@ public class AlipayUI : MonoBehaviour
         jo.Call("chooseVideo");
     }
 
-    public void CameraCallBack(string log)
-    {
-        Debug.Log("[拍照路径回调]" + log);
-        //log = log.Substring(8, log.Length - 8);
-        LoadByIO();
-    }
-
-    public void GalleryCallBack(string log)
-    {
-        Debug.Log("[相册路径回调]" + log);
-        //log = log.Substring(8, log.Length - 8);
-        LoadByIO();
-    }
-
     /// <summary>
     /// 以IO方式进行加载
     /// </summary>
@@ -252,6 +226,31 @@ public class AlipayUI : MonoBehaviour
         jo.Call("copyFile", oldPath, newPath);
     }
 
+    public void PluginCallBack(string log)
+    {
+        logText.text = log;
+        Debug.Log("plugin callback: " + log);
+    }
+
+    public void StatusCallback(string log)
+    {
+        logText.text = log;
+        Debug.Log("pay status: " + log);
+    }
+
+    public void CameraCallBack(string log)
+    {
+        Debug.Log("[拍照路径回调]" + log);
+        //log = log.Substring(8, log.Length - 8);
+        LoadByIO();
+    }
+
+    public void GalleryCallBack(string log)
+    {
+        Debug.Log("[相册路径回调]" + log);
+        //log = log.Substring(8, log.Length - 8);
+        LoadByIO();
+    }
 }
 
 [System.Serializable]
