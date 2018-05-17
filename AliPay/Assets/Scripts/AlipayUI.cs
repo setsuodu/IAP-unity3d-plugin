@@ -10,12 +10,11 @@ public class AlipayUI : MonoBehaviour
     [SerializeField] private Text logText, resultText, clipText;
     [SerializeField] private InputField m_clipInputField;
     [SerializeField] private Image mainImage;
-
-    public string className = "com.mier.mymirror.MyPluginClass";
-    public List<Button> buttons = null;
-    public List<PayInfo> payInfos = null;
-
+    [SerializeField] private List<Button> buttons = null;
+    [SerializeField] private List<PayInfo> payInfos = null;
     private Texture texture;
+
+    private string className = "com.mier.mymirror.MyPluginClass";
     private AndroidJavaObject jo = null;
 
     void Start()
