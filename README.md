@@ -1,7 +1,7 @@
-# unity3d-android-plugin
-对外式例项目，android插件框架
+# IAP-unity3d-plugin
+式例项目，Android/iOS插件集成
 
-### 接口介绍
+### Android接口
 
 1. void SayHello() - 测试接口，向Unity回调SendMessage
 2. int CalculateAdd(int,int) - 接收Unity传入，计算返回结果
@@ -14,3 +14,9 @@
 9. void TakePhoto(String) - 调用本地相册
 10. void Copy(String)- 将文字放入系统剪贴板
 11. String Paste()- 从系统剪贴板中获取文字
+
+### iOS接口
+
+1. string doAPPay(string orderInfo)
+
+[集成文档](https://docs.open.alipay.com/204/105295/)
