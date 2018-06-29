@@ -20,3 +20,12 @@
 1. string doAPPay(string orderInfo) - 支付宝支付接口
 
 [集成文档](https://docs.open.alipay.com/204/105295/)
+
+### 常见错误及解决方案
+1. [iOS] Xcode编译，提示'openssl/asn1.h' file not found
+2. [iOS] 完成支付，无法回调。设置PList。
+		// 设置Alipay回调app名称
+		var urltypes = plistDict.CreateArray("CFBundleURLTypes");
+		var item0 = urltypes.AddDict();
+		var urlschemes = item0.CreateArray("URL Schemes");
+		urlschemes.AddString("app_name");
