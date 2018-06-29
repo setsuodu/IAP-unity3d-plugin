@@ -41,3 +41,4 @@ sysinfo.txt
 AliPay/.vs/AliPay/v15/Server/sqlite3/storage.ide
 *.ide-wal
 AliPay/.vs/AliPay/v15/Server/sqlite3/storage.ide-shm
+[Bb]uild/
