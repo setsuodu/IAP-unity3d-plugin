@@ -23,9 +23,10 @@
 
 ### 常见错误及解决方案
 1. [iOS] Xcode编译，提示'openssl/asn1.h' file not found
-> openssl是用来在客户端生成订单的。
-> 如果由服务器生成订单，可删除相关包。
-> 如果要在客户端生成订单，需要在"Build Settings -> Search Paths"中配置添加头文件搜索路径。
+
+openssl是用来在客户端生成订单的。
+如果由服务器生成订单，可删除相关包。
+如果要在客户端生成订单，需要在"Build Settings -> Search Paths -> Header Search Paths"中配置添加头文件搜索路径$(SRCROOT)/Libraries/Plugins/iOS。
 
 2. [iOS] 完成支付，无法回调。设置PList。
 ```
