@@ -36,3 +36,5 @@ var item0 = urltypes.AddDict();
 var urlschemes = item0.CreateArray("URL Schemes");
 urlschemes.AddString("app_name");
 ```
+3. [iOS] iOS客户端支付没有沙箱环境。确保服务端是正式环境。
+
