@@ -5,6 +5,16 @@ using UnityEngine.UI;
 
 public class iOSPay : MonoBehaviour
 {
+    public delegate void AliPayDelegate(string status); //监听
+    public static AliPayDelegate AliPayEvent; //回调
+    public static void OnAliPayEvent(string status) //调用函数
+    {
+        if (AliPayEvent != null)
+        {
+            AliPayEvent(status);
+        }
+    }
+
 	public Button m_clientPayButton;
     public Button m_serverPayButton;
 
@@ -31,6 +41,8 @@ public class iOSPay : MonoBehaviour
 
 	void ServerPay()
 	{
+        AliPayEvent += AliPayLog;
+
 		PayInfo payInfo = new PayInfo();
 		payInfo.body = "AR会员";
 		payInfo.subject = "蜜迩科技";
@@ -42,7 +54,8 @@ public class iOSPay : MonoBehaviour
 
 	IEnumerator OnServerSign(PayInfo payInfo)
 	{
-		// += Delegate; //添加支付完成代理
+		// 添加委托方法
+        AliPayEvent += AliPayLog;
 
 		WWWForm form = new WWWForm();
 		form.AddField("body", payInfo.body);
@@ -59,14 +72,30 @@ public class iOSPay : MonoBehaviour
 		}
 		Debug.Log(www.text); //服务器返回加签后的订单
 
-		string orderInfo = www.text;
-		string result = HookBridge.doAPPay(orderInfo);
-		Debug.Log("支付结果: " + result);
+        string orderInfo = www.text;
+        HookBridge.doAPPay(orderInfo);
 	}
-    
-	void AliPayLog(string log)
-	{
-		Debug.Log(log);
-		//-= Delegate;
-	}
+
+    // 委托的方法
+    void AliPayLog(string log)
+    {
+        Debug.Log("SDK回调 ==>> " + log);
+        switch (log)
+        {
+            case "9000":
+				m_serverPayButton.image.color = Color.green;
+                break;
+            default:
+				m_serverPayButton.image.color = Color.red;
+                break;
+        }
+        AliPayEvent -= AliPayLog; //释放委托
+    }
+   
+    //sdk支付结果回调 UnitySendMessage("Object", "StatusCallback", "param");
+    public void StatusCallback(string log)
+    {
+        Debug.Log("StatusCallback ==>> " + log);
+        OnAliPayEvent(log);
+    }
 }
