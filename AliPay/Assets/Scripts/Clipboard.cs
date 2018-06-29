@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-public class Example : MonoBehaviour //继承  
+public class Clipboard : MonoBehaviour //继承  
     , IPointerClickHandler //接口  
     , IPointerExitHandler
     , IPointerDownHandler

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using LitJson;
 
-public class AlipayUI : MonoBehaviour
+public class AndroidPay : MonoBehaviour
 {
     [SerializeField] private Text logText, resultText, clipText;
     [SerializeField] private InputField m_clipInputField;

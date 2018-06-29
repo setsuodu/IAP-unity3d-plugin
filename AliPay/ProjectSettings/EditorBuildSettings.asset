@@ -6,5 +6,5 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/MyPlugin.unity
-    guid: dfd84823855a8d64eb2c298ed270e5f4
+    path: Assets/Scenes/iOSPay.unity
+    guid: 9ca6731a6e1be46d3ba0a6af9cfd717c
