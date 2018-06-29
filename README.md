@@ -17,6 +17,6 @@
 
 ### iOS接口
 
-1. string doAPPay(string orderInfo)
+1. string doAPPay(string orderInfo) - 支付宝支付接口
 
 [集成文档](https://docs.open.alipay.com/204/105295/)
