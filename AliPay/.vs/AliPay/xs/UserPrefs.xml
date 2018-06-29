@@ -1,10 +1,5 @@
 ﻿<Properties StartupConfiguration="{EFBA4DEF-7D37-B22D-2494-4B501AA42DA2}|">
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/iOSPay.cs">
-    <Files>
-      <File FileName="Assets/Editor/XCodePostProcess.cs" Line="31" Column="18" />
-      <File FileName="Assets/Scripts/iOSPay.cs" Line="32" Column="18" />
-    </Files>
-  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workbench />
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
