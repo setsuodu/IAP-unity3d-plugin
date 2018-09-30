@@ -22,6 +22,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 import android.view.View;
 
+import com.alipay.sdk.app.AuthTask;
 import com.alipay.sdk.app.PayTask;
 import com.alipay.sdk.app.EnvUtils;
 import com.unity3d.player.UnityPlayer;
@@ -42,6 +43,7 @@ import java.util.Map;
 import android.database.Cursor;
 import android.util.Log;
 
+import demo.AuthResult;
 import demo.BadgeUtil;
 import demo.PayResult;
 import demo.util.OrderInfoUtil2_0;
@@ -91,10 +93,13 @@ public class MyPluginClass extends Fragment
     }
 
     //支付
-    public static final String APPID = "填写应用APPID"; //沙箱版
+    public static final String PID = "商户支付宝PID";
+    public static final String APPID = "填写应用APPID";
     public static final String RSA_PRIVATE = "";
-    public static final String RSA2_PRIVATE = "填写RSA2应用私钥";
+    public static final String RSA2_PRIVATE = "填写RSA2应用pkcs8私钥"; //服务端是php.net的，使用pkcs1
     private static final int SDK_PAY_FLAG = 1;
+    private static final int SDK_AUTH_FLAG = 2;
+    public static final String TARGET_ID = "kkkkk091125"; //传用户名、时间
     public String productid;
 
     private static final String RESULT_SUCCESS = "9000";
@@ -128,6 +133,28 @@ public class MyPluginClass extends Fragment
                     {
                         // 该笔订单真实的支付结果，需要依赖服务端的异步通知。
                         Toast.makeText(getActivity(), TIP_PAY_FAILED, Toast.LENGTH_SHORT).show();
+                    }
+                    break;
+                }
+                case SDK_AUTH_FLAG: {
+                    @SuppressWarnings("unchecked")
+                    AuthResult authResult = new AuthResult((Map<String, String>) msg.obj, true);
+                    String resultStatus = authResult.getResultStatus();
+
+                    Log.d(TAG, "==>> " + resultStatus);
+
+                    // 判断resultStatus 为“9000”且result_code
+                    // 为“200”则代表授权成功，具体状态码代表含义可参考授权接口文档
+                    if (TextUtils.equals(resultStatus, "9000") && TextUtils.equals(authResult.getResultCode(), "200")) {
+                        // 获取alipay_open_id，调支付时作为参数extern_token 的value
+                        // 传入，则支付账户为该授权账户
+
+                        StatusCallback("授权成功\n" + String.format("authCode:%s", authResult.getAuthCode()));
+
+                        Toast.makeText(getActivity(),"授权成功\n" + String.format("authCode:%s", authResult.getAuthCode()), Toast.LENGTH_SHORT).show();
+                    } else {
+                        // 其他状态值则为授权失败
+                        Toast.makeText(getActivity(),"授权失败" + String.format("authCode:%s", authResult.getAuthCode()), Toast.LENGTH_SHORT).show();
                     }
                     break;
                 }
@@ -200,6 +227,62 @@ public class MyPluginClass extends Fragment
         payThread.start();
 
         return orderInfo;
+    }
+
+    // 支付宝账户授权业务
+    /**
+     * 支付宝账户授权业务
+     *
+     * @param
+     */
+    public void authV2(final String info) {
+        if (TextUtils.isEmpty(PID) || TextUtils.isEmpty(APPID) || (TextUtils.isEmpty(RSA2_PRIVATE) && TextUtils.isEmpty(RSA_PRIVATE)) || TextUtils.isEmpty(TARGET_ID)) {
+            Log.d(TAG, "==>> 缺少配置");
+            return;
+        }
+
+        /**
+         * 这里只是为了方便直接向商户展示支付宝的整个支付流程；所以Demo中加签过程直接放在客户端完成；
+         * 真实App里，privateKey等数据严禁放在客户端，加签过程务必要放在服务端完成；
+         * 防止商户私密数据泄露，造成不必要的资金损失，及面临各种安全风险；
+         *
+         * authInfo的获取必须来自服务端；
+         */
+
+        /*
+        boolean rsa2 = (RSA2_PRIVATE.length() > 0);
+        Map<String, String> authInfoMap = OrderInfoUtil2_0.buildAuthInfoMap(PID, APPID, TARGET_ID, rsa2);
+        String info1 = OrderInfoUtil2_0.buildOrderParam(authInfoMap);
+
+        String privateKey = rsa2 ? RSA2_PRIVATE : RSA_PRIVATE;
+        String sign = OrderInfoUtil2_0.getSign(authInfoMap, privateKey, rsa2);
+        final String authInfo = info1 + "&" + sign;
+        */
+
+        final String authInfo = info;
+
+        Runnable authRunnable = new Runnable() {
+
+            @Override
+            public void run() {
+                //EnvUtils.setEnv(EnvUtils.EnvEnum.SANDBOX); //沙箱环境
+
+                // 构造AuthTask 对象
+                AuthTask authTask = new AuthTask(getActivity());
+                // 调用授权接口，获取授权结果
+
+                Map<String, String> result = authTask.authV2(authInfo, true);
+
+                Message msg = new Message();
+                msg.what = SDK_AUTH_FLAG;
+                msg.obj = result;
+                mHandler.sendMessage(msg);
+            }
+        };
+
+        // 必须异步调用
+        Thread authThread = new Thread(authRunnable);
+        authThread.start();
     }
 
     //返回给Unity
