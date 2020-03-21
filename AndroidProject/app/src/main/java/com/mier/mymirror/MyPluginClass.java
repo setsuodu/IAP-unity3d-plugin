@@ -48,15 +48,12 @@ import demo.BadgeUtil;
 import demo.PayResult;
 import demo.util.OrderInfoUtil2_0;
 
-public class MyPluginClass extends Fragment
-{
+public class MyPluginClass extends Fragment {
     private static final String TAG = "MyPlugin";
     private static MyPluginClass Instance = null;
     private String gameObjectName;
-    public static MyPluginClass GetInstance(String gameObject)
-    {
-        if(Instance == null)
-        {
+    public static MyPluginClass GetInstance(String gameObject) {
+        if(Instance == null) {
             Instance = new MyPluginClass();
             Instance.gameObjectName = gameObject;
             UnityPlayer.currentActivity.getFragmentManager().beginTransaction().add(Instance, TAG).commit();
@@ -65,8 +62,7 @@ public class MyPluginClass extends Fragment
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState)
-    {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);  // 这一句很重要，保存对该Fragment的引用，防止在旋转屏幕等操作时时丢失引用（Fragment隶属于Activity）
     }
@@ -287,7 +283,6 @@ public class MyPluginClass extends Fragment
 
     //返回给Unity
     public void PayResultToUnity(String productid) {
-        //物体名字，   方法名字    方法的参数
         UnityPlayer.UnitySendMessage("Canvas","PayResult",productid);
     }
 
@@ -354,7 +349,7 @@ public class MyPluginClass extends Fragment
     }
 
     //粘贴
-    public String onClickPaste(){
+    public String onClickPaste() {
         ClipboardManager cm = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clipData = cm.getPrimaryClip();
         //result = cm.toString(); //ClipData{ text/plain "Label"{T:"str"}}; //取出的是ClipData
@@ -408,7 +403,7 @@ public class MyPluginClass extends Fragment
 
         String destDir = getActivity().getExternalFilesDir(null).toString() + "/" + "video.mp4";
         File file = new File(destDir);
-        if(file.exists()){
+        if(file.exists()) {
             file.delete();
         }
         Uri uri = Uri.fromFile(file);

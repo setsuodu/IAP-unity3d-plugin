@@ -17,8 +17,7 @@ public class MainActivity extends UnityPlayerActivity {
     }
 
     //Unity中会调用这个方法，用于区分打开摄像机，开始本地相册
-    public void TakePhoto(String str)
-    {
+    public void TakePhoto(String str) {
         Intent intent = new Intent(mContext,WebViewActivity.class);
         intent.putExtra("type", str);
         this.startActivity(intent);

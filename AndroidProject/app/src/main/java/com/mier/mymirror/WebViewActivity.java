@@ -17,8 +17,7 @@ import android.provider.MediaStore;
 import android.view.KeyEvent;
 import android.widget.ImageView;
 
-public class WebViewActivity extends Activity
-{
+public class WebViewActivity extends Activity {
     ImageView imageView = null;
 
     public static final int NONE = 0;
@@ -33,9 +32,7 @@ public class WebViewActivity extends Activity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.main);
 
         imageView = (ImageView) this.findViewById(R.id.imageview1);
@@ -110,7 +107,6 @@ public class WebViewActivity extends Activity
     }
 
     public void SaveBitmap(Bitmap bitmap) throws IOException {
-
         FileOutputStream fOut = null;
 
         //注解1
@@ -120,11 +116,9 @@ public class WebViewActivity extends Activity
             //如果并没有这个路径，
             //创建这个路径
             File destDir = new File(path);
-            if (!destDir.exists())
-            {
+            if (!destDir.exists()) {
                 destDir.mkdirs();
             }
-
             fOut = new FileOutputStream(path + "/" + FILE_NAME) ;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -144,10 +138,8 @@ public class WebViewActivity extends Activity
     }
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event)
-    {
-        if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0)
-        {
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
             //当用户点击返回键是 通知Unity开始在"/mnt/sdcard/Android/data/com.xys/files";路径中读取图片资源，并且现在在Unity中
             UnityPlayer.UnitySendMessage("Main Camera","message",FILE_NAME);
         }
